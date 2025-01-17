@@ -42,6 +42,10 @@ function renderCart() {
 	let cart=getCart();
 	cartList.innerHTML='';
 
+	if (cart.length === 0) {
+        cartList.innerHTML = "<li>Your cart is empty.</li>";
+    }
+
 	cart.forEach((item)=>{
 		const li = document.createElement("li");
         li.innerHTML = `${item.name} - $${item.price} <button class="remove-from-cart-btn" data-id="${item.id}">Remove</button>`;
