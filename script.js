@@ -109,14 +109,10 @@ const products = [
 // DOM elements
 const productList = document.getElementById("product-list");
 const cartList = document.getElementById("cart-list");
+const clearCartBtn = document.getElementById("clear-cart-btn");
 
-function getCart() {
-  return JSON.parse(sessionStorage.getItem("cart")) || [];
-}
-
-function saveCart(cart) {
-  sessionStorage.setItem("cart", JSON.stringify(cart));
-}
+// Get cart data from session storage or initialize it
+let cart = JSON.parse(sessionStorage.getItem("cart")) || [];
 
 // Render product list
 function renderProducts() {
@@ -125,74 +121,59 @@ function renderProducts() {
     li.innerHTML = `${product.name} - $${product.price} <button class="add-to-cart-btn" data-id="${product.id}">Add to Cart</button>`;
     productList.appendChild(li);
   });
-
-  document.querySelectorAll(".add-to-cart-btn").forEach((button) => {
-    button.addEventListener('click', (e) => {
-      const prodId = parseInt(e.target.getAttribute("data-id"));
-      addToCart(prodId);
-    });
-  });
 }
 
 // Render cart list
 function renderCart() {
-  let cart = getCart();
-  cartList.innerHTML = ''; // Clear existing cart content
-
-  cart.forEach((item) => {
+  cartList.innerHTML = "";
+  cart.forEach((cartItem) => {
     const li = document.createElement("li");
-    li.innerHTML = `${item.name} - $${item.price} <button class="remove-from-cart-btn" data-id="${item.id}">Remove</button>`;
+    li.innerHTML = `${cartItem.name} - $${cartItem.price} <button class="remove-from-cart-btn" data-id="${cartItem.id}">Remove from Cart</button>`;
     cartList.appendChild(li);
-  });
-
-  // Add event listener to remove buttons in the cart
-  document.querySelectorAll('.remove-from-cart-btn').forEach((item) => {
-    item.addEventListener('click', (e) => {
-      let prodId = parseInt(e.target.getAttribute('data-id'));
-      removeFromCart(prodId);
-    });
   });
 }
 
 // Add item to cart
 function addToCart(productId) {
-  const prod = products.find((p) => p.id === productId);
-
-  if (!prod) return;
-
-  const cart = getCart();
-
-  let flag = cart.find((p) => p.id === productId);
-  if (flag) return; // Prevent adding the same item multiple times
-  
-  cart.push(prod);
-  saveCart(cart);
-  renderCart();
+  const productToAdd = products.find((product) => product.id === productId);
+  if (productToAdd) {
+    cart.push(productToAdd);
+    sessionStorage.setItem("cart", JSON.stringify(cart));
+    renderCart();
+  }
 }
 
 // Remove item from cart
 function removeFromCart(productId) {
-  let cart = getCart();
-  cart = cart.filter((p) => p.id !== productId);
-  saveCart(cart);
+  cart = cart.filter((cartItem) => cartItem.id !== productId);
+  sessionStorage.setItem("cart", JSON.stringify(cart));
   renderCart();
 }
 
 // Clear cart
 function clearCart() {
-  sessionStorage.removeItem("cart"); // Remove cart from sessionStorage
-  renderCart(); // Re-render the empty cart
+  cart = [];
+  sessionStorage.removeItem("cart");
+  renderCart();
 }
+
+// Event listeners
+productList.addEventListener("click", (event) => {
+  if (event.target.classList.contains("add-to-cart-btn")) {
+    const productId = parseInt(event.target.getAttribute("data-id"));
+    addToCart(productId);
+  }
+});
+
+cartList.addEventListener("click", (event) => {
+  if (event.target.classList.contains("remove-from-cart-btn")) {
+    const productId = parseInt(event.target.getAttribute("data-id"));
+    removeFromCart(productId);
+  }
+});
+
+clearCartBtn.addEventListener("click", clearCart);
 
 // Initial render
 renderProducts();
-renderCart(); 
-
-// Clear cart button listener
-document.getElementById('clear-cart-btn').addEventListener('click', clearCart);
-
-// Clear cart before initial render to make sure the cart starts empty
-window.onload = function() {
-  sessionStorage.removeItem("cart"); // This will clear the cart on page load.
-  renderCart(); // Re-render the cart (which will now be empty)
-};
+renderCart();
