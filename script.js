@@ -63,6 +63,10 @@ function addToCart(productId) {
 	if(!prod) return;
 
 	const cart = getCart();
+
+	let flag=cart.find((p)=>p.id===productId);
+	if(flag) return;
+	
 	cart.push(prod);
 	saveCart(cart);
 	renderCart();
